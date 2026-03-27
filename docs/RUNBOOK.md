@@ -1,0 +1,71 @@
+# Runbook: robot_api
+
+## Local Development
+```bash
+cd /home/trana/Development/robot_api
+python -m venv .venv
+source .venv/bin/activate
+pip install ".[dev]"
+uvicorn robot_api.main:app --host 127.0.0.1 --port 8200 --reload
+```
+
+## Production-like Robot Run
+```bash
+cd /home/trana/Development/robot_api
+source .venv/bin/activate
+uvicorn robot_api.main:app --host 0.0.0.0 --port 8200 --workers 1
+```
+
+## Production Service Install (`systemd`)
+Install:
+```bash
+cd /opt/robot_api
+sudo ROBOT_API_APP_DIR=/opt/robot_api \
+  ROBOT_API_SERVICE_USER=ubuntu \
+  ROBOT_API_SERVICE_GROUP=ubuntu \
+  ./scripts/install_systemd_service.sh
+```
+
+Configure env file:
+```bash
+sudoedit /etc/default/robot-api
+```
+
+Start and verify:
+```bash
+sudo systemctl restart robot-api
+sudo systemctl status robot-api
+sudo journalctl -u robot-api -f
+```
+
+## Required Environment Variables
+- `ROBOT_API_MANAGED_SERVICE=robot-stack.service`
+- `ROBOT_API_WORKSPACE_DIR=/opt/robot_ws`
+- `ROBOT_API_REPO_DIR=/opt/robot_ws/src/robot_stack`
+- `ROBOT_API_REPO_BRANCH=main`
+- `ROBOT_API_ROS_SETUP_PATH=/opt/ros/jazzy/setup.bash`
+- `ROBOT_API_BUILD_COMMAND=colcon build --symlink-install`
+- `ROBOT_API_UPDATE_TIMEOUT_S=1800`
+- `ROBOT_API_MAX_LOG_LINES=4000`
+- `ROBOT_API_MAX_JOBS=50`
+- `ROBOT_API_CORS_ALLOWED_ORIGINS=*`
+- optional: `ROBOT_API_TOKEN=<strong-token>`
+
+Service/runtime envs used by `scripts/run_uvicorn.sh`:
+- `ROBOT_API_APP_DIR=/opt/robot_api`
+- `ROBOT_API_VENV=/opt/robot_api/.venv`
+- `ROBOT_API_BIND_HOST=0.0.0.0`
+- `ROBOT_API_BIND_PORT=8200`
+- `ROBOT_API_WORKERS=1`
+
+## Robot Smoke Validation
+- Run the full checklist in `docs/ROBOT_SMOKE_CHECKLIST.md` after deployment updates.
+
+## Rollback Procedure
+1. Deploy previous known-good `robot_api` revision.
+2. Restore `/etc/default/robot-api` if changed.
+3. Restart service:
+```bash
+sudo systemctl restart robot-api
+sudo systemctl status robot-api
+```
