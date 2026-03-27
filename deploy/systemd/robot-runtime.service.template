@@ -1,0 +1,23 @@
+[Unit]
+Description=Robot Runtime Launch Service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=__ROBOT_RUNTIME_USER__
+Group=__ROBOT_RUNTIME_GROUP__
+WorkingDirectory=__ROBOT_API_APP_DIR__
+EnvironmentFile=-/etc/default/robot-api
+ExecStart=__ROBOT_API_APP_DIR__/scripts/run_robot_runtime.sh
+Restart=on-failure
+RestartSec=2
+TimeoutStopSec=20
+KillSignal=SIGINT
+NoNewPrivileges=true
+PrivateTmp=true
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

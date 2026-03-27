@@ -24,3 +24,13 @@ Validation commands:
 Validation commands:
 - `cd /home/trana/Development/robot_api && ./.venv/bin/pytest`
   - Passed: `17` tests
+
+## 2026-03-27 - Runtime Launch Service Sourcing ROS + Workspace
+- Added runtime service launcher script `scripts/run_robot_runtime.sh`.
+- Added `robot-runtime.service` template and install/uninstall scripts.
+- Updated default managed service to `robot-runtime.service`.
+- Updated ROS setup defaults to Humble path (`/opt/ros/humble/setup.bash`).
+- Extended env example and runbook with runtime launch variables and startup sequence.
+
+Validation commands:
+- `cd /home/trana/Development/robot_api && ./.venv/bin/pytest`

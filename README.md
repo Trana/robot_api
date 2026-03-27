@@ -48,10 +48,18 @@ uvicorn robot_api.main:app --host 127.0.0.1 --port 8200 --reload
 
 ## Notes
 - For real robot runtime, use a single worker process (`--workers 1`).
+- Runtime start/stop/restart is managed through `systemctl` on `ROBOT_API_MANAGED_SERVICE` (default `robot-runtime.service`).
+- `robot-runtime.service` launches via `scripts/run_robot_runtime.sh`, which sources:
+  - `ROBOT_RUNTIME_ROS_SETUP` (default `/opt/ros/humble/setup.bash`)
+  - `ROBOT_RUNTIME_WORKSPACE_SETUP` (default `/opt/robot_ws/install/setup.bash`)
+  then executes `ROBOT_RUNTIME_LAUNCH_COMMAND`.
 - Configure env vars documented in `docs/RUNBOOK.md`.
 - Browser clients can be enabled via `ROBOT_API_CORS_ALLOWED_ORIGINS` (default `*`).
 - For managed deployment, use:
   - `deploy/systemd/robot-api.service.template`
+  - `deploy/systemd/robot-runtime.service.template`
   - `deploy/systemd/robot-api.env.example`
   - `scripts/install_systemd_service.sh`
+  - `scripts/install_runtime_systemd_service.sh`
   - `scripts/uninstall_systemd_service.sh`
+  - `scripts/uninstall_runtime_systemd_service.sh`

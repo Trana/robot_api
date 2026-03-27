@@ -4,7 +4,7 @@ Use this checklist after deploying a new `robot_api` revision or changing servic
 
 ## Preconditions
 - `robot-api` service installed and running.
-- Managed runtime service configured (default `robot-stack.service`).
+- Managed runtime service configured (default `robot-runtime.service`).
 - `robot_api` token available if auth is enabled.
 
 ## 1) API Reachability

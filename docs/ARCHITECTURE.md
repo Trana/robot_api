@@ -17,7 +17,7 @@ Out of scope:
 
 ## Runtime Topology
 - robot_api process (FastAPI/Uvicorn).
-- Managed robot runtime service (default: `robot-stack.service`).
+- Managed robot runtime service (default: `robot-runtime.service`).
 - Optional journal access via `journalctl`.
 
 ## Components
@@ -41,7 +41,8 @@ Out of scope:
 Runtime action:
 1. API receives authenticated action.
 2. RobotService executes `systemctl` command.
-3. API returns normalized action response.
+3. For start/restart, the managed runtime service executes `scripts/run_robot_runtime.sh`, which sources ROS + workspace install setup files before launch command execution.
+4. API returns normalized action response.
 
 Update job:
 1. API creates job and starts background thread.

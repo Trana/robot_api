@@ -12,8 +12,9 @@ def test_from_env_defaults(monkeypatch: pytest.MonkeyPatch):
 
     settings = RobotApiSettings.from_env()
 
-    assert settings.managed_service == "robot-stack.service"
+    assert settings.managed_service == "robot-runtime.service"
     assert settings.repo_branch == "main"
+    assert settings.ros_setup_path == Path("/opt/ros/humble/setup.bash")
     assert isinstance(settings.workspace_dir, Path)
     assert settings.cors_allowed_origins == ("*",)
 

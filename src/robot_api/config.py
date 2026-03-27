@@ -21,11 +21,11 @@ class RobotApiSettings:
 
     @classmethod
     def from_env(cls) -> "RobotApiSettings":
-        managed_service = os.getenv("ROBOT_API_MANAGED_SERVICE", "robot-stack.service").strip() or "robot-stack.service"
+        managed_service = os.getenv("ROBOT_API_MANAGED_SERVICE", "robot-runtime.service").strip() or "robot-runtime.service"
         workspace_dir = Path(os.getenv("ROBOT_API_WORKSPACE_DIR", "/opt/robot_ws").strip() or "/opt/robot_ws")
         repo_dir = Path(os.getenv("ROBOT_API_REPO_DIR", "/opt/robot_ws/src/robot_stack").strip() or "/opt/robot_ws/src/robot_stack")
         repo_branch = os.getenv("ROBOT_API_REPO_BRANCH", "main").strip() or "main"
-        ros_setup_path = Path(os.getenv("ROBOT_API_ROS_SETUP_PATH", "/opt/ros/jazzy/setup.bash").strip() or "/opt/ros/jazzy/setup.bash")
+        ros_setup_path = Path(os.getenv("ROBOT_API_ROS_SETUP_PATH", "/opt/ros/humble/setup.bash").strip() or "/opt/ros/humble/setup.bash")
         build_command = os.getenv("ROBOT_API_BUILD_COMMAND", "colcon build --symlink-install").strip() or "colcon build --symlink-install"
         update_timeout_s = float(os.getenv("ROBOT_API_UPDATE_TIMEOUT_S", "1800"))
         max_log_lines = int(os.getenv("ROBOT_API_MAX_LOG_LINES", "4000"))

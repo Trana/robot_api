@@ -26,6 +26,15 @@ sudo ROBOT_API_APP_DIR=/opt/robot_api \
   ./scripts/install_systemd_service.sh
 ```
 
+Install managed runtime service:
+```bash
+cd /opt/robot_api
+sudo ROBOT_API_APP_DIR=/opt/robot_api \
+  ROBOT_RUNTIME_SERVICE_USER=ubuntu \
+  ROBOT_RUNTIME_SERVICE_GROUP=ubuntu \
+  ./scripts/install_runtime_systemd_service.sh
+```
+
 Configure env file:
 ```bash
 sudoedit /etc/default/robot-api
@@ -35,21 +44,27 @@ Start and verify:
 ```bash
 sudo systemctl restart robot-api
 sudo systemctl status robot-api
+sudo systemctl restart robot-runtime
+sudo systemctl status robot-runtime
 sudo journalctl -u robot-api -f
 ```
 
 ## Required Environment Variables
-- `ROBOT_API_MANAGED_SERVICE=robot-stack.service`
+- `ROBOT_API_MANAGED_SERVICE=robot-runtime.service`
 - `ROBOT_API_WORKSPACE_DIR=/opt/robot_ws`
 - `ROBOT_API_REPO_DIR=/opt/robot_ws/src/robot_stack`
 - `ROBOT_API_REPO_BRANCH=main`
-- `ROBOT_API_ROS_SETUP_PATH=/opt/ros/jazzy/setup.bash`
+- `ROBOT_API_ROS_SETUP_PATH=/opt/ros/humble/setup.bash`
 - `ROBOT_API_BUILD_COMMAND=colcon build --symlink-install`
 - `ROBOT_API_UPDATE_TIMEOUT_S=1800`
 - `ROBOT_API_MAX_LOG_LINES=4000`
 - `ROBOT_API_MAX_JOBS=50`
 - `ROBOT_API_CORS_ALLOWED_ORIGINS=*`
 - optional: `ROBOT_API_TOKEN=<strong-token>`
+- `ROBOT_RUNTIME_WORKDIR=/opt/robot_ws`
+- `ROBOT_RUNTIME_ROS_SETUP=/opt/ros/humble/setup.bash`
+- `ROBOT_RUNTIME_WORKSPACE_SETUP=/opt/robot_ws/install/setup.bash`
+- `ROBOT_RUNTIME_LAUNCH_COMMAND=ros2 launch robot_bringup bringup.launch.py`
 
 Service/runtime envs used by `scripts/run_uvicorn.sh`:
 - `ROBOT_API_APP_DIR=/opt/robot_api`
@@ -57,6 +72,12 @@ Service/runtime envs used by `scripts/run_uvicorn.sh`:
 - `ROBOT_API_BIND_HOST=0.0.0.0`
 - `ROBOT_API_BIND_PORT=8200`
 - `ROBOT_API_WORKERS=1`
+
+Runtime launch sequence used by `scripts/run_robot_runtime.sh`:
+1. `cd ${ROBOT_RUNTIME_WORKDIR}`
+2. `source ${ROBOT_RUNTIME_ROS_SETUP}`
+3. `source ${ROBOT_RUNTIME_WORKSPACE_SETUP}`
+4. `exec ${ROBOT_RUNTIME_LAUNCH_COMMAND}`
 
 ## Robot Smoke Validation
 - Run the full checklist in `docs/ROBOT_SMOKE_CHECKLIST.md` after deployment updates.
