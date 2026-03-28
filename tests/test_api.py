@@ -16,6 +16,7 @@ class FakeService:
         self.start_called = False
         self.stop_called = False
         self.restart_called = False
+        self.reset_can_called = False
         self.update_calls: list[bool] = []
 
     def snapshot(self) -> dict[str, object]:
@@ -49,6 +50,9 @@ class FakeService:
 
     def restart_runtime(self) -> None:
         self.restart_called = True
+
+    def reset_can_bus(self) -> None:
+        self.reset_can_called = True
 
     def start_update_job(self, *, restart_service: bool) -> str:
         self.update_calls.append(restart_service)
@@ -140,6 +144,17 @@ def test_start_endpoint_triggers_service() -> None:
 
     assert response.status_code == 200
     assert fake.start_called is True
+
+
+def test_reset_can_endpoint_triggers_service() -> None:
+    fake = FakeService()
+    app = create_app(settings=_settings(), service=fake)
+
+    with TestClient(app) as client:
+        response = client.post("/api/v1/robot/can/reset")
+
+    assert response.status_code == 200
+    assert fake.reset_can_called is True
 
 
 def test_update_endpoints() -> None:

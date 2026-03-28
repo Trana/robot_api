@@ -250,6 +250,20 @@ def create_app(settings: RobotApiSettings | None = None, service: RobotService |
             x_api_key=x_api_key,
         )
 
+    @app.post("/api/v1/robot/can/reset", response_model=RobotActionResponse)
+    def robot_reset_can(
+        authorization: str | None = Header(default=None, alias="Authorization"),
+        x_api_key: str | None = Header(default=None, alias="X-API-Key"),
+    ) -> RobotActionResponse:
+        return _robot_action(
+            operation="robot_reset_can",
+            action="can_reset",
+            executor=resolved_service.reset_can_bus,
+            settings=resolved_settings,
+            authorization=authorization,
+            x_api_key=x_api_key,
+        )
+
     @app.post("/api/v1/ops/update", response_model=UpdateStartResponse)
     def start_update(
         request: UpdateRequest,

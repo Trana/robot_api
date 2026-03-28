@@ -126,6 +126,21 @@ class RobotService:
     def restart_runtime(self) -> None:
         self._run_systemctl_action("restart")
 
+    def reset_can_bus(self) -> None:
+        iface = str(self.settings.can_iface or "").strip()
+        if not iface:
+            raise RuntimeError("ROBOT_API_CAN_IFACE is not configured")
+
+        down_command = ["ip", "link", "set", iface, "down"]
+        down_result = self._run_command(down_command, None, None, 5.0)
+        if down_result.returncode != 0:
+            raise RuntimeError(_format_command_failure(down_command, down_result))
+
+        up_command = ["ip", "link", "set", iface, "up"]
+        up_result = self._run_command(up_command, None, None, 5.0)
+        if up_result.returncode != 0:
+            raise RuntimeError(_format_command_failure(up_command, up_result))
+
     def _run_systemctl_action(self, action: str) -> None:
         command = ["systemctl", action, self.settings.managed_service]
         result = self._run_command(command, None, None, 20.0)

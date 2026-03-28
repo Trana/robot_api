@@ -122,18 +122,21 @@ def test_get_runtime_status_parses_systemctl_show() -> None:
     assert "launch_process_cmdline" in payload
 
 
-def test_start_stop_restart_runtime_calls_systemctl() -> None:
+def test_start_stop_restart_runtime_and_reset_can_call_expected_commands() -> None:
     runner = FakeRunner()
     service = RobotService(_settings(), command_runner=runner)
 
     service.start_runtime()
     service.stop_runtime()
     service.restart_runtime()
+    service.reset_can_bus()
 
     commands = [call[0] for call in runner.calls]
     assert ["systemctl", "start", "robot-stack.service"] in commands
     assert ["systemctl", "stop", "robot-stack.service"] in commands
     assert ["systemctl", "restart", "robot-stack.service"] in commands
+    assert ["ip", "link", "set", "can0", "down"] in commands
+    assert ["ip", "link", "set", "can0", "up"] in commands
 
 
 def test_get_recent_logs_clamps_requested_lines() -> None:

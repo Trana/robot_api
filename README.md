@@ -42,6 +42,7 @@ uvicorn robot_api.main:app --host 127.0.0.1 --port 8200 --reload
 - `POST /api/v1/robot/start`
 - `POST /api/v1/robot/stop`
 - `POST /api/v1/robot/restart`
+- `POST /api/v1/robot/can/reset`
 - `POST /api/v1/ops/update`
 - `GET /api/v1/ops/jobs`
 - `GET /api/v1/ops/jobs/{job_id}`
