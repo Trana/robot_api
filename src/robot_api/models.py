@@ -57,6 +57,8 @@ class RobotStatusResponse(BaseModel):
     process_rss_bytes: int | None = None
     process_threads: int | None = None
     process_cmdline: str | None = None
+    launch_process_pid: int | None = None
+    launch_process_cmdline: str | None = None
 
 
 class RobotActionResponse(BaseModel):

@@ -8,6 +8,7 @@ ENV_EXAMPLE_PATH="${REPO_DIR}/deploy/systemd/robot-api.env.example"
 APP_DIR="${ROBOT_API_APP_DIR:-/opt/robot_api}"
 SERVICE_USER="${ROBOT_RUNTIME_SERVICE_USER:-$(id -un)}"
 SERVICE_GROUP="${ROBOT_RUNTIME_SERVICE_GROUP:-$(id -gn)}"
+ENABLE_ON_BOOT="${ROBOT_RUNTIME_ENABLE_ON_BOOT:-0}"
 SYSTEMD_UNIT_PATH="/etc/systemd/system/robot-runtime.service"
 ENV_FILE_PATH="/etc/default/robot-api"
 
@@ -35,10 +36,17 @@ else
 fi
 
 systemctl daemon-reload
-systemctl enable robot-runtime
+
+if [[ "${ENABLE_ON_BOOT}" == "1" || "${ENABLE_ON_BOOT}" == "true" || "${ENABLE_ON_BOOT}" == "yes" ]]; then
+  systemctl enable robot-runtime
+  echo "Enabled robot-runtime.service at boot."
+else
+  systemctl disable robot-runtime >/dev/null 2>&1 || true
+  echo "Left robot-runtime.service disabled at boot (manual/API start only)."
+fi
 
 echo "Installed robot-runtime.service"
 echo "Next steps:"
 echo "  1) Edit ${ENV_FILE_PATH}"
-echo "  2) systemctl restart robot-runtime"
+echo "  2) systemctl start robot-runtime (manual/API trigger)"
 echo "  3) systemctl status robot-runtime"

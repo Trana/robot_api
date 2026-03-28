@@ -34,6 +34,8 @@ sudo ROBOT_API_APP_DIR=/opt/robot_api \
   ROBOT_RUNTIME_SERVICE_GROUP=ubuntu \
   ./scripts/install_runtime_systemd_service.sh
 ```
+Default behavior: runtime unit is installed but not enabled at boot.  
+Set `ROBOT_RUNTIME_ENABLE_ON_BOOT=1` when running the install script if boot auto-start is required.
 
 Configure env file:
 ```bash
@@ -44,7 +46,7 @@ Start and verify:
 ```bash
 sudo systemctl restart robot-api
 sudo systemctl status robot-api
-sudo systemctl restart robot-runtime
+sudo systemctl start robot-runtime
 sudo systemctl status robot-runtime
 sudo journalctl -u robot-api -f
 ```

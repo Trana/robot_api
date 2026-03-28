@@ -118,6 +118,8 @@ def test_get_runtime_status_parses_systemctl_show() -> None:
     assert payload["can_iface"] == "can0"
     assert payload["can_present"] is True
     assert payload["can_bus_state"] == "ERROR-ACTIVE"
+    assert "launch_process_pid" in payload
+    assert "launch_process_cmdline" in payload
 
 
 def test_start_stop_restart_runtime_calls_systemctl() -> None:

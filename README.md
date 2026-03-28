@@ -53,6 +53,7 @@ uvicorn robot_api.main:app --host 127.0.0.1 --port 8200 --reload
   - `ROBOT_RUNTIME_ROS_SETUP` (default `/opt/ros/humble/setup.bash`)
   - `ROBOT_RUNTIME_WORKSPACE_SETUP` (default `/opt/robot_ws/install/setup.bash`)
   then executes `ROBOT_RUNTIME_LAUNCH_COMMAND`.
+- `scripts/install_runtime_systemd_service.sh` keeps `robot-runtime.service` disabled at boot by default (manual/API start only). Set `ROBOT_RUNTIME_ENABLE_ON_BOOT=1` to enable boot auto-start.
 - Configure env vars documented in `docs/RUNBOOK.md`.
 - Browser clients can be enabled via `ROBOT_API_CORS_ALLOWED_ORIGINS` (default `*`).
 - For managed deployment, use:

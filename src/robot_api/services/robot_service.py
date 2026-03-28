@@ -114,6 +114,7 @@ class RobotService:
         payload.update(_collect_pi_throttle_metrics(self._run_command))
         payload.update(_collect_can_metrics(self._run_command, self.settings.can_iface))
         payload.update(_collect_process_metrics(main_pid))
+        payload.update(_collect_launch_child_metrics(main_pid))
         return payload
 
     def start_runtime(self) -> None:
@@ -521,15 +522,108 @@ def _collect_process_metrics(main_pid: int) -> dict[str, object]:
         pass
 
     cmdline_path = process_dir / "cmdline"
-    try:
-        raw_cmd = cmdline_path.read_bytes()
-        parts = [part.decode("utf-8", errors="replace") for part in raw_cmd.split(b"\x00") if part]
-        if parts:
-            payload["process_cmdline"] = " ".join(parts)
-    except Exception:
-        pass
+    payload["process_cmdline"] = _read_cmdline_from_path(cmdline_path)
 
     return payload
+
+
+def _collect_launch_child_metrics(main_pid: int) -> dict[str, object]:
+    payload: dict[str, object] = {
+        "launch_process_pid": None,
+        "launch_process_cmdline": None,
+    }
+    if main_pid <= 0:
+        return payload
+
+    descendants = _collect_descendant_pids(main_pid, max_nodes=128)
+    if not descendants:
+        return payload
+
+    selected_pid: int | None = None
+    selected_cmdline: str | None = None
+    selected_score = -1
+
+    for pid in descendants:
+        cmdline = _read_cmdline_for_pid(pid)
+        if not cmdline:
+            continue
+        lowered = cmdline.lower()
+        score = 0
+        if "ros2 launch" in lowered:
+            score = 100
+        elif "launch.py" in lowered:
+            score = 80
+        elif " launch " in lowered:
+            score = 60
+        elif "python" in lowered:
+            score = 30
+        else:
+            score = 10
+
+        if score > selected_score:
+            selected_pid = pid
+            selected_cmdline = cmdline
+            selected_score = score
+
+    if selected_pid is None:
+        return payload
+
+    payload["launch_process_pid"] = selected_pid
+    payload["launch_process_cmdline"] = selected_cmdline
+    return payload
+
+
+def _collect_descendant_pids(root_pid: int, *, max_nodes: int) -> list[int]:
+    visited: set[int] = set()
+    queue: list[int] = [root_pid]
+    descendants: list[int] = []
+
+    while queue and len(visited) < max_nodes:
+        current = queue.pop(0)
+        if current in visited:
+            continue
+        visited.add(current)
+
+        children = _read_children_pids(current)
+        for child_pid in children:
+            if child_pid <= 0 or child_pid in visited:
+                continue
+            descendants.append(child_pid)
+            queue.append(child_pid)
+
+    return descendants
+
+
+def _read_children_pids(pid: int) -> list[int]:
+    children_path = Path(f"/proc/{pid}/task/{pid}/children")
+    try:
+        raw = children_path.read_text(encoding="utf-8").strip()
+    except Exception:
+        return []
+    if not raw:
+        return []
+
+    parsed: list[int] = []
+    for token in raw.split():
+        value = _parse_int(token, default=0)
+        if value > 0:
+            parsed.append(value)
+    return parsed
+
+
+def _read_cmdline_for_pid(pid: int) -> str | None:
+    return _read_cmdline_from_path(Path(f"/proc/{pid}/cmdline"))
+
+
+def _read_cmdline_from_path(cmdline_path: Path) -> str | None:
+    try:
+        raw_cmd = cmdline_path.read_bytes()
+    except Exception:
+        return None
+    parts = [part.decode("utf-8", errors="replace") for part in raw_cmd.split(b"\x00") if part]
+    if not parts:
+        return None
+    return " ".join(parts)
 
 
 def _extract_first_int(raw: str) -> int | None:
