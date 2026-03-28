@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -eo pipefail
 
 RUNTIME_WORKDIR="${ROBOT_RUNTIME_WORKDIR:-/opt/robot_ws}"
 ROS_SETUP="${ROBOT_RUNTIME_ROS_SETUP:-/opt/ros/humble/setup.bash}"
@@ -22,7 +22,10 @@ if [[ -z "${LAUNCH_COMMAND}" ]]; then
 fi
 
 cd "${RUNTIME_WORKDIR}"
+# ROS setup scripts may reference unset vars; avoid nounset failures while sourcing.
+set +u
 source "${ROS_SETUP}"
 source "${WORKSPACE_SETUP}"
+set -u
 
 exec bash -lc "${LAUNCH_COMMAND}"
