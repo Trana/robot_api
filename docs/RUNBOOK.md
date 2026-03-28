@@ -51,6 +51,7 @@ sudo journalctl -u robot-api -f
 
 ## Required Environment Variables
 - `ROBOT_API_MANAGED_SERVICE=robot-runtime.service`
+- `ROBOT_API_CAN_IFACE=can0`
 - `ROBOT_API_WORKSPACE_DIR=/opt/robot_ws`
 - `ROBOT_API_REPO_DIR=/opt/robot_ws/src/robot_stack`
 - `ROBOT_API_REPO_BRANCH=main`

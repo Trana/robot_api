@@ -13,6 +13,7 @@ def test_from_env_defaults(monkeypatch: pytest.MonkeyPatch):
     settings = RobotApiSettings.from_env()
 
     assert settings.managed_service == "robot-runtime.service"
+    assert settings.can_iface == "can0"
     assert settings.repo_branch == "main"
     assert settings.ros_setup_path == Path("/opt/ros/humble/setup.bash")
     assert isinstance(settings.workspace_dir, Path)
@@ -21,6 +22,7 @@ def test_from_env_defaults(monkeypatch: pytest.MonkeyPatch):
 
 def test_from_env_custom_values(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv("ROBOT_API_MANAGED_SERVICE", "marvin-runtime.service")
+    monkeypatch.setenv("ROBOT_API_CAN_IFACE", "can1")
     monkeypatch.setenv("ROBOT_API_REPO_BRANCH", "release")
     monkeypatch.setenv("ROBOT_API_CORS_ALLOWED_ORIGINS", "http://a.local,http://b.local")
     monkeypatch.setenv("ROBOT_API_TOKEN", "secret")
@@ -28,6 +30,7 @@ def test_from_env_custom_values(monkeypatch: pytest.MonkeyPatch):
     settings = RobotApiSettings.from_env()
 
     assert settings.managed_service == "marvin-runtime.service"
+    assert settings.can_iface == "can1"
     assert settings.repo_branch == "release"
     assert settings.cors_allowed_origins == ("http://a.local", "http://b.local")
     assert settings.api_token == "secret"

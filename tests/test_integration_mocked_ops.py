@@ -36,6 +36,7 @@ class IntegrationRunner:
 def _settings() -> RobotApiSettings:
     return RobotApiSettings(
         managed_service="robot-stack.service",
+        can_iface="can0",
         workspace_dir=Path("/workspace"),
         repo_dir=Path("/workspace/repo"),
         repo_branch="main",

@@ -20,6 +20,43 @@ class RobotStatusResponse(BaseModel):
     sub_state: str
     main_pid: int
     active_since: str | None = None
+    host_cpu_count: int | None = None
+    host_load_1m: float | None = None
+    host_load_5m: float | None = None
+    host_load_15m: float | None = None
+    host_load_percent_1m: float | None = None
+    host_memory_total_bytes: int | None = None
+    host_memory_available_bytes: int | None = None
+    host_memory_used_percent: float | None = None
+    host_disk_used_percent: float | None = None
+    host_uptime_s: float | None = None
+    host_cpu_temp_c: float | None = None
+    pi_throttled_hex: str | None = None
+    pi_throttled_active_flags: list[str] | None = None
+    pi_undervoltage_now: bool | None = None
+    pi_throttled_now: bool | None = None
+    pi_freq_capped_now: bool | None = None
+    pi_soft_temp_limit_now: bool | None = None
+    pi_undervoltage_since_boot: bool | None = None
+    pi_throttled_since_boot: bool | None = None
+    pi_freq_capped_since_boot: bool | None = None
+    pi_soft_temp_limit_since_boot: bool | None = None
+    can_iface: str | None = None
+    can_present: bool | None = None
+    can_link_up: bool | None = None
+    can_oper_state: str | None = None
+    can_bus_state: str | None = None
+    can_bitrate: int | None = None
+    can_berr_tx: int | None = None
+    can_berr_rx: int | None = None
+    can_rx_packets: int | None = None
+    can_rx_errors: int | None = None
+    can_tx_packets: int | None = None
+    can_tx_errors: int | None = None
+    process_running: bool | None = None
+    process_rss_bytes: int | None = None
+    process_threads: int | None = None
+    process_cmdline: str | None = None
 
 
 class RobotActionResponse(BaseModel):

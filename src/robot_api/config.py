@@ -8,6 +8,7 @@ import os
 @dataclass(frozen=True)
 class RobotApiSettings:
     managed_service: str
+    can_iface: str
     workspace_dir: Path
     repo_dir: Path
     repo_branch: str
@@ -22,6 +23,7 @@ class RobotApiSettings:
     @classmethod
     def from_env(cls) -> "RobotApiSettings":
         managed_service = os.getenv("ROBOT_API_MANAGED_SERVICE", "robot-runtime.service").strip() or "robot-runtime.service"
+        can_iface = os.getenv("ROBOT_API_CAN_IFACE", "can0").strip()
         workspace_dir = Path(os.getenv("ROBOT_API_WORKSPACE_DIR", "/opt/robot_ws").strip() or "/opt/robot_ws")
         repo_dir = Path(os.getenv("ROBOT_API_REPO_DIR", "/opt/robot_ws/src/robot_stack").strip() or "/opt/robot_ws/src/robot_stack")
         repo_branch = os.getenv("ROBOT_API_REPO_BRANCH", "main").strip() or "main"
@@ -49,6 +51,7 @@ class RobotApiSettings:
 
         return cls(
             managed_service=managed_service,
+            can_iface=can_iface,
             workspace_dir=workspace_dir,
             repo_dir=repo_dir,
             repo_branch=repo_branch,

@@ -50,12 +50,34 @@ class FakeRunner:
         if command[:1] == ["journalctl"]:
             return CommandResult(returncode=0, stdout="line1\nline2\n", stderr="")
 
+        if command[:2] == ["vcgencmd", "get_throttled"]:
+            return CommandResult(returncode=0, stdout="throttled=0x0\n", stderr="")
+
+        if command[:4] == ["ip", "-details", "-statistics", "link"]:
+            return CommandResult(
+                returncode=0,
+                stdout="\n".join(
+                    [
+                        "6: can0: <NOARP,UP,LOWER_UP,ECHO> mtu 16 qdisc pfifo_fast state UP mode DEFAULT group default qlen 10",
+                        "    link/can ",
+                        "    can state ERROR-ACTIVE (berr-counter tx 0 rx 0) restart-ms 0",
+                        "          bitrate 500000 sample-point 0.875",
+                        "    RX: bytes  packets  errors  dropped overrun mcast   ",
+                        "    12757      1032     0       0       0       0",
+                        "    TX: bytes  packets  errors  dropped carrier collsns ",
+                        "    3850       107      0       0       0       0",
+                    ]
+                ),
+                stderr="",
+            )
+
         return CommandResult(returncode=0, stdout="ok\n", stderr="")
 
 
 def _settings() -> RobotApiSettings:
     return RobotApiSettings(
         managed_service="robot-stack.service",
+        can_iface="can0",
         workspace_dir=Path("/workspace"),
         repo_dir=Path("/workspace/repo"),
         repo_branch="main",
@@ -89,6 +111,13 @@ def test_get_runtime_status_parses_systemctl_show() -> None:
     assert payload["active_state"] == "active"
     assert payload["sub_state"] == "running"
     assert payload["main_pid"] == 1234
+    assert "host_memory_used_percent" in payload
+    assert "host_cpu_temp_c" in payload
+    assert "process_running" in payload
+    assert payload["pi_throttled_hex"] == "0x0"
+    assert payload["can_iface"] == "can0"
+    assert payload["can_present"] is True
+    assert payload["can_bus_state"] == "ERROR-ACTIVE"
 
 
 def test_start_stop_restart_runtime_calls_systemctl() -> None:
@@ -110,6 +139,7 @@ def test_get_recent_logs_clamps_requested_lines() -> None:
     settings = _settings()
     settings = RobotApiSettings(
         managed_service=settings.managed_service,
+        can_iface=settings.can_iface,
         workspace_dir=settings.workspace_dir,
         repo_dir=settings.repo_dir,
         repo_branch=settings.repo_branch,
