@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 import json
 import logging
 from time import perf_counter
-from typing import Any
+from typing import Any, Literal
 
 from fastapi import FastAPI, Header, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
@@ -186,6 +186,8 @@ def create_app(settings: RobotApiSettings | None = None, service: RobotService |
     @app.get("/api/v1/robot/logs", response_model=RobotLogsResponse)
     def robot_logs(
         lines: int = Query(default=200, ge=1),
+        scope: Literal["current_run", "history"] = Query(default="current_run"),
+        since: str | None = Query(default=None),
         authorization: str | None = Header(default=None, alias="Authorization"),
         x_api_key: str | None = Header(default=None, alias="X-API-Key"),
     ) -> RobotLogsResponse:
@@ -198,14 +200,14 @@ def create_app(settings: RobotApiSettings | None = None, service: RobotService |
             x_api_key_header=x_api_key,
         )
         try:
-            items = resolved_service.get_recent_logs(lines)
+            items = resolved_service.get_recent_logs(lines, scope=scope, since=since)
         except Exception as err:
             message = str(err)
             _log_operation("robot_logs", success=False, status_code=503, start_s=started, error_code="ROBOT_LOGS_FAILED", error_message=message)
             raise _raise_api_error(503, "ROBOT_LOGS_FAILED", message) from err
 
-        payload = RobotLogsResponse(service_name=resolved_settings.managed_service, requested_lines=lines, lines=items)
-        _log_operation("robot_logs", success=True, status_code=200, start_s=started, line_count=len(items))
+        payload = RobotLogsResponse(service_name=resolved_settings.managed_service, requested_lines=lines, scope=scope, since=since, lines=items)
+        _log_operation("robot_logs", success=True, status_code=200, start_s=started, line_count=len(items), scope=scope, since=since)
         return payload
 
     @app.post("/api/v1/robot/start", response_model=RobotActionResponse)

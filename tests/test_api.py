@@ -18,6 +18,7 @@ class FakeService:
         self.restart_called = False
         self.reset_can_called = False
         self.update_calls: list[bool] = []
+        self.logs_calls: list[tuple[int, str, str | None]] = []
 
     def snapshot(self) -> dict[str, object]:
         return {
@@ -39,7 +40,8 @@ class FakeService:
             "active_since": "Fri 2026-03-27",
         }
 
-    def get_recent_logs(self, lines: int) -> list[str]:
+    def get_recent_logs(self, lines: int, *, scope: str = "current_run", since: str | None = None) -> list[str]:
+        self.logs_calls.append((lines, scope, since))
         return [f"l{lines}"]
 
     def start_runtime(self) -> None:
@@ -172,3 +174,29 @@ def test_update_endpoints() -> None:
         detail_response = client.get("/api/v1/ops/jobs/job-123")
         assert detail_response.status_code == 200
         assert detail_response.json()["logs"] == ["hello"]
+
+
+def test_logs_endpoint_defaults_to_current_run_scope() -> None:
+    fake = FakeService()
+    app = create_app(settings=_settings(), service=fake)
+
+    with TestClient(app) as client:
+        response = client.get("/api/v1/robot/logs")
+
+    assert response.status_code == 200
+    assert fake.logs_calls == [(200, "current_run", None)]
+    assert response.json()["scope"] == "current_run"
+
+
+def test_logs_endpoint_accepts_history_scope_and_since() -> None:
+    fake = FakeService()
+    app = create_app(settings=_settings(), service=fake)
+
+    with TestClient(app) as client:
+        response = client.get("/api/v1/robot/logs?lines=50&scope=history&since=2026-03-29+13:03:00")
+
+    assert response.status_code == 200
+    assert fake.logs_calls == [(50, "history", "2026-03-29 13:03:00")]
+    payload = response.json()
+    assert payload["scope"] == "history"
+    assert payload["since"] == "2026-03-29 13:03:00"

@@ -38,7 +38,7 @@ uvicorn robot_api.main:app --host 127.0.0.1 --port 8200 --reload
 ## API (MVP)
 - `GET /api/health`
 - `GET /api/v1/robot/status`
-- `GET /api/v1/robot/logs?lines=200`
+- `GET /api/v1/robot/logs?lines=200&scope=current_run`
 - `POST /api/v1/robot/start`
 - `POST /api/v1/robot/stop`
 - `POST /api/v1/robot/restart`
@@ -50,6 +50,7 @@ uvicorn robot_api.main:app --host 127.0.0.1 --port 8200 --reload
 ## Notes
 - For real robot runtime, use a single worker process (`--workers 1`).
 - Runtime start/stop/restart is managed through `systemctl` on `ROBOT_API_MANAGED_SERVICE` (default `robot-runtime.service`).
+- Runtime logs endpoint supports `scope=current_run|history`; default is `current_run` to focus on the latest runtime session.
 - `robot-runtime.service` launches via `scripts/run_robot_runtime.sh`, which sources:
   - `ROBOT_RUNTIME_ROS_SETUP` (default `/opt/ros/humble/setup.bash`)
   - `ROBOT_RUNTIME_WORKSPACE_SETUP` (default `/opt/robot_ws/install/setup.bash`)

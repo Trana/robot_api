@@ -72,31 +72,12 @@ class RobotService:
         }
 
     def get_runtime_status(self) -> dict[str, object]:
-        command = [
-            "systemctl",
-            "show",
-            self.settings.managed_service,
-            "--no-page",
-            "--property",
+        values = self._read_systemd_properties(
             "ActiveState",
-            "--property",
             "SubState",
-            "--property",
             "MainPID",
-            "--property",
             "ActiveEnterTimestamp",
-        ]
-        result = self._run_command(command, None, None, 10.0)
-        if result.returncode != 0:
-            raise RuntimeError(_format_command_failure(command, result))
-
-        values: dict[str, str] = {}
-        for raw_line in result.stdout.splitlines():
-            line = raw_line.strip()
-            if not line or "=" not in line:
-                continue
-            key, value = line.split("=", 1)
-            values[key] = value.strip()
+        )
 
         active_state = values.get("ActiveState", "unknown")
         sub_state = values.get("SubState", "unknown")
@@ -147,8 +128,15 @@ class RobotService:
         if result.returncode != 0:
             raise RuntimeError(_format_command_failure(command, result))
 
-    def get_recent_logs(self, lines: int) -> list[str]:
+    def get_recent_logs(
+        self,
+        lines: int,
+        *,
+        scope: str = "current_run",
+        since: str | None = None,
+    ) -> list[str]:
         requested = max(1, min(int(lines), self.settings.max_log_lines))
+        effective_since = self._resolve_logs_since(scope=scope, since=since)
         command = [
             "journalctl",
             "-u",
@@ -159,10 +147,57 @@ class RobotService:
             "-o",
             "short-iso",
         ]
+        if effective_since is not None:
+            command.extend(["--since", effective_since])
         result = self._run_command(command, None, None, 10.0)
         if result.returncode != 0:
             raise RuntimeError(_format_command_failure(command, result))
         return [line for line in result.stdout.splitlines() if line.strip()]
+
+    def _read_systemd_properties(self, *properties: str) -> dict[str, str]:
+        command = [
+            "systemctl",
+            "show",
+            self.settings.managed_service,
+            "--no-page",
+        ]
+        for name in properties:
+            command.extend(["--property", name])
+
+        result = self._run_command(command, None, None, 10.0)
+        if result.returncode != 0:
+            raise RuntimeError(_format_command_failure(command, result))
+
+        values: dict[str, str] = {}
+        for raw_line in result.stdout.splitlines():
+            line = raw_line.strip()
+            if not line or "=" not in line:
+                continue
+            key, value = line.split("=", 1)
+            values[key] = value.strip()
+        return values
+
+    def _resolve_logs_since(self, *, scope: str, since: str | None) -> str | None:
+        explicit = _normalize_log_since(since)
+        if explicit is not None:
+            return explicit
+
+        normalized_scope = str(scope or "").strip().lower()
+        if normalized_scope != "current_run":
+            return None
+
+        values = self._read_systemd_properties(
+            "ActiveState",
+            "ActiveEnterTimestamp",
+            "ExecMainStartTimestamp",
+        )
+        active_state = values.get("ActiveState", "").strip().lower()
+        if active_state in {"active", "activating", "reloading"}:
+            active_since = _normalize_log_since(values.get("ActiveEnterTimestamp"))
+            if active_since is not None:
+                return active_since
+
+        return _normalize_log_since(values.get("ExecMainStartTimestamp"))
 
     def start_update_job(self, *, restart_service: bool) -> str:
         with self._state_lock:
@@ -270,6 +305,16 @@ def _parse_int(raw: str, *, default: int) -> int:
         return int(str(raw).strip())
     except Exception:
         return default
+
+
+def _normalize_log_since(raw: str | None) -> str | None:
+    value = str(raw or "").strip()
+    if not value:
+        return None
+    lowered = value.lower()
+    if lowered in {"n/a", "na", "none", "null", "0"}:
+        return None
+    return value
 
 
 def _collect_host_metrics(workspace_dir: Path) -> dict[str, object]:

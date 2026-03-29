@@ -43,7 +43,7 @@ Expected:
 
 ## 4) Logs Endpoint
 ```bash
-curl -s -H "Authorization: Bearer <TOKEN>" "http://127.0.0.1:8200/api/v1/robot/logs?lines=100" | python3 -m json.tool
+curl -s -H "Authorization: Bearer <TOKEN>" "http://127.0.0.1:8200/api/v1/robot/logs?lines=100&scope=current_run" | python3 -m json.tool
 ```
 Expected:
 - `lines` contains recent journal entries for managed service

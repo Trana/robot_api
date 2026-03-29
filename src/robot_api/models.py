@@ -70,6 +70,8 @@ class RobotActionResponse(BaseModel):
 class RobotLogsResponse(BaseModel):
     service_name: str
     requested_lines: int
+    scope: str
+    since: str | None = None
     lines: list[str]
 
 

@@ -163,6 +163,31 @@ def test_get_recent_logs_clamps_requested_lines() -> None:
     assert lines == ["line1", "line2"]
     journalctl_call = next(call for call in runner.calls if call[0][0] == "journalctl")
     assert journalctl_call[0][4] == "10"
+    assert "--since" in journalctl_call[0]
+
+
+def test_get_recent_logs_history_scope_skips_current_run_since_lookup() -> None:
+    runner = FakeRunner()
+    service = RobotService(_settings(), command_runner=runner)
+
+    lines = service.get_recent_logs(20, scope="history")
+
+    assert lines == ["line1", "line2"]
+    journalctl_call = next(call for call in runner.calls if call[0][0] == "journalctl")
+    assert "--since" not in journalctl_call[0]
+
+
+def test_get_recent_logs_explicit_since_takes_priority() -> None:
+    runner = FakeRunner()
+    service = RobotService(_settings(), command_runner=runner)
+
+    lines = service.get_recent_logs(20, scope="current_run", since="2026-03-29 13:03:00")
+
+    assert lines == ["line1", "line2"]
+    journalctl_call = next(call for call in runner.calls if call[0][0] == "journalctl")
+    assert journalctl_call[0][-2:] == ["--since", "2026-03-29 13:03:00"]
+    systemctl_show_calls = [call for call in runner.calls if call[0][:2] == ["systemctl", "show"]]
+    assert systemctl_show_calls == []
 
 
 def test_update_job_success_runs_expected_steps() -> None:
