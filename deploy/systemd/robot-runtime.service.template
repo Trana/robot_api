@@ -9,6 +9,7 @@ User=__ROBOT_RUNTIME_USER__
 Group=__ROBOT_RUNTIME_GROUP__
 WorkingDirectory=__ROBOT_API_APP_DIR__
 EnvironmentFile=-/etc/default/robot-api
+PassEnvironment=ROBOT_RUNTIME_USE_IMU
 ExecStart=__ROBOT_API_APP_DIR__/scripts/run_robot_runtime.sh
 Restart=on-failure
 RestartSec=2

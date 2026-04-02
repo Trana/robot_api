@@ -67,6 +67,10 @@ class RobotActionResponse(BaseModel):
     status: str
 
 
+class RobotStartRequest(BaseModel):
+    use_imu: bool | None = None
+
+
 class RobotLogsResponse(BaseModel):
     service_name: str
     requested_lines: int

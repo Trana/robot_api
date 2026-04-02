@@ -98,8 +98,8 @@ class RobotService:
         payload.update(_collect_launch_child_metrics(main_pid))
         return payload
 
-    def start_runtime(self) -> None:
-        self._run_systemctl_action("start")
+    def start_runtime(self, *, use_imu: bool | None = None) -> None:
+        self._run_systemctl_action("start", use_imu=use_imu)
 
     def stop_runtime(self) -> None:
         self._run_systemctl_action("stop")
@@ -122,11 +122,35 @@ class RobotService:
         if up_result.returncode != 0:
             raise RuntimeError(_format_command_failure(up_command, up_result))
 
-    def _run_systemctl_action(self, action: str) -> None:
+    def _run_systemctl_action(self, action: str, *, use_imu: bool | None = None) -> None:
+        if action == "start" and use_imu is not None:
+            self._set_manager_env_var("ROBOT_RUNTIME_USE_IMU", "true" if use_imu else "false")
+            try:
+                command = ["systemctl", action, self.settings.managed_service]
+                result = self._run_command(command, None, None, 20.0)
+                if result.returncode != 0:
+                    raise RuntimeError(_format_command_failure(command, result))
+            finally:
+                self._unset_manager_env_var("ROBOT_RUNTIME_USE_IMU")
+            return
+
         command = ["systemctl", action, self.settings.managed_service]
         result = self._run_command(command, None, None, 20.0)
         if result.returncode != 0:
             raise RuntimeError(_format_command_failure(command, result))
+
+    def _set_manager_env_var(self, key: str, value: str) -> None:
+        command = ["systemctl", "set-environment", f"{key}={value}"]
+        result = self._run_command(command, None, None, 10.0)
+        if result.returncode != 0:
+            raise RuntimeError(_format_command_failure(command, result))
+
+    def _unset_manager_env_var(self, key: str) -> None:
+        command = ["systemctl", "unset-environment", key]
+        result = self._run_command(command, None, None, 10.0)
+        # Best effort cleanup: do not fail runtime start if manager env cleanup fails.
+        if result.returncode != 0:
+            return
 
     def get_recent_logs(
         self,

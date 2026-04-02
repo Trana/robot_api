@@ -14,6 +14,7 @@ from robot_api.main import create_app
 class FakeService:
     def __init__(self) -> None:
         self.start_called = False
+        self.start_use_imu: bool | None = None
         self.stop_called = False
         self.restart_called = False
         self.reset_can_called = False
@@ -44,8 +45,9 @@ class FakeService:
         self.logs_calls.append((lines, scope, since))
         return [f"l{lines}"]
 
-    def start_runtime(self) -> None:
+    def start_runtime(self, *, use_imu: bool | None = None) -> None:
         self.start_called = True
+        self.start_use_imu = use_imu
 
     def stop_runtime(self) -> None:
         self.stop_called = True
@@ -146,6 +148,18 @@ def test_start_endpoint_triggers_service() -> None:
 
     assert response.status_code == 200
     assert fake.start_called is True
+
+
+def test_start_endpoint_accepts_use_imu_override() -> None:
+    fake = FakeService()
+    app = create_app(settings=_settings(), service=fake)
+
+    with TestClient(app) as client:
+        response = client.post("/api/v1/robot/start", json={"use_imu": False})
+
+    assert response.status_code == 200
+    assert fake.start_called is True
+    assert fake.start_use_imu is False
 
 
 def test_reset_can_endpoint_triggers_service() -> None:

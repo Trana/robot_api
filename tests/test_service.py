@@ -139,6 +139,18 @@ def test_start_stop_restart_runtime_and_reset_can_call_expected_commands() -> No
     assert ["ip", "link", "set", "can0", "up"] in commands
 
 
+def test_start_runtime_with_use_imu_sets_and_unsets_manager_env() -> None:
+    runner = FakeRunner()
+    service = RobotService(_settings(), command_runner=runner)
+
+    service.start_runtime(use_imu=False)
+
+    commands = [call[0] for call in runner.calls]
+    assert ["systemctl", "set-environment", "ROBOT_RUNTIME_USE_IMU=false"] in commands
+    assert ["systemctl", "start", "robot-stack.service"] in commands
+    assert ["systemctl", "unset-environment", "ROBOT_RUNTIME_USE_IMU"] in commands
+
+
 def test_get_recent_logs_clamps_requested_lines() -> None:
     runner = FakeRunner()
     settings = _settings()

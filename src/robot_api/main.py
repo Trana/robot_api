@@ -18,6 +18,7 @@ from robot_api.models import (
     JobSummaryResponse,
     RobotActionResponse,
     RobotLogsResponse,
+    RobotStartRequest,
     RobotStatusResponse,
     UpdateRequest,
     UpdateStartResponse,
@@ -212,13 +213,14 @@ def create_app(settings: RobotApiSettings | None = None, service: RobotService |
 
     @app.post("/api/v1/robot/start", response_model=RobotActionResponse)
     def robot_start(
+        request: RobotStartRequest | None = None,
         authorization: str | None = Header(default=None, alias="Authorization"),
         x_api_key: str | None = Header(default=None, alias="X-API-Key"),
     ) -> RobotActionResponse:
         return _robot_action(
             operation="robot_start",
             action="start",
-            executor=resolved_service.start_runtime,
+            executor=lambda: resolved_service.start_runtime(use_imu=request.use_imu if request is not None else None),
             settings=resolved_settings,
             authorization=authorization,
             x_api_key=x_api_key,
