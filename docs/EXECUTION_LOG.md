@@ -47,3 +47,15 @@ Validation commands:
 
 Validation commands:
 - `cd /home/trana/Development/robot_api && ./.venv/bin/pytest`
+
+## 2026-04-17 - Docs Update for Editable Install + `use_imu` Validation
+- Updated `docs/RUNBOOK.md` with explicit post-pull update flow:
+  - `git pull --ff-only`
+  - `./.venv/bin/pip install -e .`
+  - service restart + OpenAPI verification for `/api/v1/robot/start` request body.
+- Updated `docs/ROBOT_SMOKE_CHECKLIST.md`:
+  - added code/runtime sync checks to detect stale site-packages imports.
+  - added direct API + journal validation for `use_imu=false` runtime start behavior.
+
+Validation commands:
+- `cd /home/mikael/Development/robot_api && git diff -- docs/RUNBOOK.md docs/ROBOT_SMOKE_CHECKLIST.md docs/EXECUTION_LOG.md`

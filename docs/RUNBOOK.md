@@ -16,6 +16,40 @@ source .venv/bin/activate
 uvicorn robot_api.main:app --host 0.0.0.0 --port 8200 --workers 1
 ```
 
+## Updating Existing Dev/Robot Install
+When pulling new code into an existing checkout, ensure the runtime imports the updated `src/robot_api` package.
+
+1. Update checkout:
+```bash
+cd /home/mikael/Development/robot_api
+git pull --ff-only origin main
+```
+2. Re-link package to local source (important for `src/` layout):
+```bash
+cd /home/mikael/Development/robot_api
+./.venv/bin/pip install -e .
+```
+3. Restart API service:
+```bash
+sudo systemctl daemon-reload
+sudo systemctl restart robot-api
+sudo systemctl status robot-api --no-pager -l
+```
+4. Verify import path + live API contract:
+```bash
+cd /home/mikael/Development/robot_api
+./.venv/bin/python -c "import robot_api.main; print(robot_api.main.__file__)"
+curl -s http://127.0.0.1:8200/openapi.json | jq '.paths["/api/v1/robot/start"].post.requestBody'
+```
+
+Expected:
+- import path points to `/home/mikael/Development/robot_api/src/robot_api/main.py`
+- `/api/v1/robot/start` request body is non-null when `use_imu` override support is live
+
+Notes:
+- `pip install -e .` is usually one-time per venv.
+- Run it again if venv was recreated, package was installed non-editable, or imports resolve to `.venv/lib/.../site-packages/robot_api`.
+
 ## Production Service Install (`systemd`)
 Install:
 ```bash

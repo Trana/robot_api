@@ -7,6 +7,25 @@ Use this checklist after deploying a new `robot_api` revision or changing servic
 - Managed runtime service configured (default `robot-runtime.service`).
 - `robot_api` token available if auth is enabled.
 
+## 0) Code + Runtime Sync Verification (After Pull/Deploy)
+```bash
+cd /home/mikael/Development/robot_api
+git rev-parse HEAD
+./.venv/bin/python -c "import robot_api.main; print(robot_api.main.__file__)"
+curl -s http://127.0.0.1:8200/openapi.json | jq '.paths["/api/v1/robot/start"].post.requestBody'
+```
+Expected:
+- revision matches intended deployed commit
+- import path resolves to `src/robot_api/main.py` (editable install), not stale `.venv/lib/.../site-packages/robot_api/main.py`
+- `requestBody` for `POST /api/v1/robot/start` is non-null on versions with `use_imu` start override support
+
+If import path is stale site-packages:
+```bash
+cd /home/mikael/Development/robot_api
+./.venv/bin/pip install -e .
+sudo systemctl restart robot-api
+```
+
 ## 1) API Reachability
 ```bash
 curl -s http://127.0.0.1:8200/api/health | python3 -m json.tool
@@ -70,6 +89,19 @@ Expected:
 - Verify runtime status and logs render.
 - Trigger one lifecycle action and verify status updates.
 - Trigger update job and verify job progress logs populate.
+- Start once with IMU disabled in UI and verify logs show `use_imu=False` in `RobotControllerNode initialized with parameters`.
+
+Direct API cross-check for IMU override:
+```bash
+curl -s -X POST -H "Authorization: Bearer <TOKEN>" http://127.0.0.1:8200/api/v1/robot/stop | python3 -m json.tool
+curl -s -X POST -H "Authorization: Bearer <TOKEN>" -H "Content-Type: application/json" \
+  -d '{"use_imu": false}' \
+  http://127.0.0.1:8200/api/v1/robot/start | python3 -m json.tool
+journalctl -u robot-runtime -n 200 --no-pager | rg "RobotControllerNode initialized|use_imu"
+```
+Expected:
+- start request returns `status: ok`
+- runtime logs include `use_imu=False` for that start
 
 ## Rollback Trigger Conditions
 Rollback immediately if any of these occur:
