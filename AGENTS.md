@@ -24,6 +24,6 @@ Repository-specific guidance for Codex. Keep product/process source of truth in 
 - Reviewer: `prompts/reviewer.md`
 
 ## Repo Boundaries
-- This repo owns robot lifecycle and deployment operations API.
+- This repo owns legacy robot status/log reads and gated lifecycle/CAN compatibility routes. Deployment update jobs have been removed.
 - It does not own policy/controller business logic implementation.
-- Keep API contracts versioned under `/api/v1/robot/*` and `/api/v1/ops/*`.
+- Keep API contracts versioned under `/api/v1/robot/*`; do not reintroduce removed `/api/v1/ops/*` routes.

@@ -20,3 +20,9 @@ Pros:
 
 Cons:
 - Additional service deployment and monitoring overhead.
+
+## Superseded scope (2026-09-19)
+
+TKT-004 removes the update-job deployment boundary, worker and HTTP routes.
+Normal lifecycle/CAN actions are migrating to Robot Control Plane; this API
+retains status/log reads and explicitly gated compatibility controls.

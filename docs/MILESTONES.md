@@ -10,10 +10,9 @@
 - Logs endpoint.
 - API tests + service tests.
 
-## Phase 3 - Update Jobs
-- Async job store and update flow.
-- Job list/detail endpoints.
-- Concurrency guard and failure handling.
+## Phase 3 - Update Jobs (retired 2026-09-19)
+- Removed UI/API, background worker, job store and deployment settings (TKT-004).
+- Operator-controlled SSH/build deployment remains outside this API.
 
 ## Phase 4 - Deployment
 - systemd templates and install scripts.

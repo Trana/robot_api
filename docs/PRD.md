@@ -4,19 +4,19 @@
 Real robot operations are currently manual and split across terminal commands:
 - start/stop runtime launch stack
 - inspect runtime status/logs
-- pull/build/restart after repo updates
 
 This increases operator overhead and makes UI-driven operations difficult.
 
-## Goals (MVP)
-1. Provide a stable HTTP API for real robot runtime lifecycle.
-2. Provide an async update API for `git pull + build + optional restart`.
+## Current Goals
+1. Retain gated legacy lifecycle compatibility; normal controls use Robot Control Plane.
+2. Preserve status/log reads while Robot Control Plane owns normal runtime operations.
 3. Keep operations safe, auditable, and machine-readable.
 4. Mirror `odrive_api` architecture for maintainability.
 
-## Non-Goals (MVP)
+## Non-Goals
 - PD tuning workflow automation.
 - Arbitrary remote shell execution.
+- Remote git/build/update jobs (removed 2026-09-19).
 - Multi-host deployment orchestration.
 
 ## Users
@@ -31,18 +31,12 @@ This increases operator overhead and makes UI-driven operations difficult.
 - Query runtime status.
 - Read recent runtime logs.
 
-2. Update operation
-- Start update job.
-- Report in-progress step and logs.
-- Return job history and final status.
-- Reject concurrent updates.
-
-3. API behavior
+2. API behavior
 - `/api/v1/*` routes support token auth.
 - Error payload includes stable `code` + `message`.
 - Structured operation logs for observability.
 
 ## Success Criteria
-- Operator can fully control runtime lifecycle from UI without shell access.
-- Operator can trigger update flow and monitor completion from UI.
+- Existing status/log reads remain available during the control-plane migration.
+- No git/build or update-job endpoints remain exposed.
 - All MVP endpoints covered by API + service tests.

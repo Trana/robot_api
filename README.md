@@ -1,12 +1,10 @@
 # robot_api
 
-FastAPI backend for real robot lifecycle and deployment operations.
+Legacy FastAPI backend for robot status/log reads and gated runtime/CAN compatibility controls.
 
 ## Purpose
 - expose HTTP endpoints to start/stop/restart the real robot runtime
 - expose status/log views for operational debugging
-- run controlled update flow (`git pull` + build + optional restart)
-- provide async job tracking for update operations
 
 ## Project Workflow Docs
 Canonical planning/execution docs:
@@ -43,13 +41,17 @@ uvicorn robot_api.main:app --host 127.0.0.1 --port 8200 --reload
 - `POST /api/v1/robot/stop`
 - `POST /api/v1/robot/restart`
 - `POST /api/v1/robot/can/reset`
-- `POST /api/v1/ops/update`
-- `GET /api/v1/ops/jobs`
-- `GET /api/v1/ops/jobs/{job_id}`
+
+Update Jobs (git pull/build/optional restart) and all `/api/v1/ops/*` routes
+were removed on 2026-09-19. They return 404 and are absent from OpenAPI.
+Deploy code explicitly through the operator's SSH/build workflow; there is no
+replacement deployment endpoint in Robot Control Plane. Existing robot installs
+retain the old feature until this revision is deployed and Robot API restarted.
 
 ## Notes
 - For real robot runtime, use a single worker process (`--workers 1`).
-- Runtime start/stop/restart is managed through `systemctl` on `ROBOT_API_MANAGED_SERVICE` (default `robot-runtime.service`).
+- Use Robot Control Plane for normal runtime/CAN operations. Legacy runtime writes return 410 with `ROBOT_API_RUNTIME_CONTROL_ENABLED=false`; CAN reset defaults to 410 unless explicitly enabled for rollback.
+- Legacy runtime start/stop/restart is managed through `systemctl` on `ROBOT_API_MANAGED_SERVICE` (default `robot-runtime.service`).
 - Runtime logs endpoint supports `scope=current_run|history`; default is `current_run` to focus on the latest runtime session.
 - `robot-runtime.service` launches via `scripts/run_robot_runtime.sh`, which sources:
   - `ROBOT_RUNTIME_ROS_SETUP` (default `/opt/ros/humble/setup.bash`)
