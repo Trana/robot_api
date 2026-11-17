@@ -8,7 +8,7 @@ Repository-specific guidance for Codex. Keep product/process source of truth in 
 - `docs/PRD.md`
 - `docs/ARCHITECTURE.md`
 - `docs/MILESTONES.md`
-- `docs/tickets/*.md`
+- [GitHub issues](https://github.com/Trana/robot_api/issues) own active tasks in this repository. [Marvin work tracking](https://github.com/Trana/marvin_wiki/blob/main/wiki/workflows/work-tracking.md) identifies the owner for cross-repository work. Local `docs/tickets/*.md` files are historical until reconciled with an issue.
 - `docs/EXECUTION_LOG.md`
 
 ## Codex Execution Rules
