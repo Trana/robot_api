@@ -7,4 +7,4 @@
 - `ROBOT_SMOKE_CHECKLIST.md`: post-deploy and post-change validation.
 - `EXECUTION_LOG.md`: implementation history and test evidence.
 - `ADRs/`: architecture decisions.
-- `tickets/`: implementation tickets.
+- [Active issue tracking](../AGENTS.md#source-of-truth). The local ticket files record historical work.

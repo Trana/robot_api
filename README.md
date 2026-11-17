@@ -13,7 +13,7 @@ Canonical planning/execution docs:
 - `docs/PRD.md`
 - `docs/ARCHITECTURE.md`
 - `docs/MILESTONES.md`
-- `docs/tickets/`
+- [Active issue tracking](AGENTS.md#source-of-truth). The local ticket files record historical work.
 - `docs/EXECUTION_LOG.md`
 - `docs/RUNBOOK.md`
 
